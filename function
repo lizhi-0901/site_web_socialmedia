@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <body>
+        <?php
+         // function connection
+         function connection ()
+         {
+             $cx=mysqli_connect("etu-web2.ut-capitole.fr","21709478","S00B51");
+             if ($cx==null)
+             {
+                 echo("connection serveur failed");
+                 return 0;
+             }
+             else 
+                 {
+                 if(mysqli_select_db($cx,"db_21709478_2")==0)
+                 {echo("connection database failed");
+                 return 0;
+                 }
+                 }
+                 return $cx;
+         }
+         // function commentaire 
+         function obtenircommentairei ($cx,$codeutl){
+                 $req_="SELECT c.codecom,u.prenomutl ,u.nomutl ,c.contenucom, c.codecomi "
+                     . "FROM commentaire c ,utilisateur u "
+                     . "WHERE c.codeutl=$codeutl AND u.codeutl=c.codeutl ORDER BY c.codecom DESC";
+                 $res_=mysqli_query($cx,$req_);
+                 if ($res_ == FALSE) {
+                    die("erreur fonction recherche commentaire : " . mysqli_error($cx));
+                 } else {
+                    $listcommentaire  = array();
+                    while($tuple= mysqli_fetch_array($res_)){
+                        $codec=$tuple["codecom"]; //index d'array LISTECOMMENTAIRE c'est le codecommentaire
+                        $info = array("nom"=>$tuple["nomutl"],
+                                      "prenom"=>$tuple["prenomutl"],
+                                      "contenu"=>$tuple["contenucom"],
+                                      "codecomi"=>$tuple["codecomi"]
+                                      );
+                        $listcommentaire[$codec]=$info;
+                    }
+                 }
+                 return $listcommentaire;
+              }
+          
+          // function reponse
+
+          function reponse($cx,$codecom) { // code de la commentaire initial
+                  $req_rep="SELECT c.contenucom, u.prenomutl, u.nomutl , c.codecom "
+                         . "FROM utilisateur u, commentaire c  "
+                         . "WHERE u.codeutl=c.codeutl AND c.codecomi=$codecom";
+                  $res_rep=mysqli_query($cx,$req_rep);
+                 
+                  if ($res_rep==FALSE){
+                        die("erreur fonction recherche reponse : " . mysqli_error($cx));
+                  } else {
+                        $listreponse=array();
+                        while($tuple=mysqli_fetch_array($res_rep) ){
+                             $codec=$tuple["codecom"];
+                             $info = array("nom" =>$tuple["nomutl"],
+                                           "prenom"=>$tuple["prenomutl"],
+                                           "contenu"=>$tuple["contenucom"] );
+                             $listreponse[$codec]=$info;
+                        }
+
+                     }
+                     return $listreponse;
+               }          
+
+           // function commentaire de cet utilisateur avec les utilisateur qu'il suiv
+               function listcom_suivre($cx,$codeutl){
+                   $req_per="SELECT c.codecom,u.prenomutl ,u.nomutl ,c.contenucom, c.codecomi "
+                           . "FROM suivre s, commentaire c ,utilisateur u "
+                           . "WHERE s.codeutls=$codeutl "
+                           . "AND (s.codeutle=c.codeutl OR c.codeutl=$codeutl )"
+                           . " AND u.codeutl=c.codeutl ORDER BY c.codecom DESC"; 
+                   $res_per= mysqli_query($cx, $req_per);
+                   if ($res_per == false){
+                        die("erreur fonction recherche commentaire : " . mysqli_error($cx));
+                   }else {
+                       $listecom_suiv=array();
+                       while ($tuple= mysqli_fetch_array($res_per)){
+                       $codec=$tuple["codecom"];
+                       $infocom_suiv=array("nom"=>$tuple["nomutl"],
+                                       "prenom"=>$tuple["prenomutl"],
+                                       "contenu"=>$tuple["contenucom"],
+                                       "codecomi"=>$tuple["codecomi"]
+                                       );
+                       $listecom_suiv[$codec]=$infocom_suiv;
+                       }
+                   }
+                   return $listecom_suiv;
+               }
+
+
+        ?>
+    </body>
+</html>
